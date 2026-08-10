@@ -69,7 +69,7 @@ if( EMSCRIPTEN )
             COMMAND_ECHO STDOUT
             COMMAND "${PYTHON_BIN}"
             "${BUILDER_PATH}"
-            "--only=openssl-hash,hunspell,brotli,harfbuzz,hyphen,icu-wasm"
+            "--only=openssl-hash,hunspell,brotli,harfbuzz,hyphen,icu-wasm,html,socketio,md"
             "${EO_CORE_3RD_PARTY_WORK_DIR}" "${EO_CORE_3RD_PARTY_INSTALL_DIR}"
             RESULT_VARIABLE result
             OUTPUT_VARIABLE output
@@ -91,6 +91,41 @@ if( EMSCRIPTEN )
     get_filename_component(OPENSSL_WASM_INSTALL_DIR_ABS "${OPENSSL_WASM_INSTALL_DIR}" ABSOLUTE)
     set(OPENSSL_WASM_LIBSSL "${OPENSSL_WASM_INSTALL_DIR_ABS}/lib/libssl.a")
     set(OPENSSL_WASM_LIBCRYPTO "${OPENSSL_WASM_INSTALL_DIR_ABS}/lib/libcrypto.a")
+
+    # x2t のソースはプラットフォーム分岐が Windows / Apple / Linux しか無く、
+    # Emscripten はどれにも当たらないため型定義すら通らない
+    # （DesktopEditor/common/Types.h の __int64 / T_ULONG64 など）。
+    # Linux 分岐を通す。BUILDING_WASM_MODULE 以降は ONLYOFFICE 自身が
+    # WASM ビルドで使う定義（出典: DesktopEditor/graphics/pro/js/raster_make.py）。
+    add_compile_definitions(
+        __linux__ LINUX _LINUX _REENTRANT
+        CRYPTOPP_DISABLE_ASM _UNICODE UNICODE
+        DONT_WRITE_EMBEDDED_FONTS       # COM 依存の埋め込みフォント処理を外す
+        HAVE_UNISTD_H HAVE_FCNTL_H
+        BUILDING_WASM_MODULE
+        _tcsnicmp=strncmp _lseek=lseek _getcwd=getcwd
+    )
+
+    # ICU（icu-wasm）のヘッダ
+    set(ICU_WASM_INSTALL_DIR "${EO_CORE_3RD_PARTY_INSTALL_DIR}/icu-wasm")
+    get_filename_component(ICU_WASM_INSTALL_DIR_ABS "${ICU_WASM_INSTALL_DIR}" ABSOLUTE)
+    include_directories("${ICU_WASM_INSTALL_DIR_ABS}/icu/source/common")
+
+    # Emscripten 同梱の Boost ヘッダを全体で使えるようにする。
+    # Boost:: を直接リンクしないライブラリも boost/format.hpp 等を include する。
+    add_compile_options("-sUSE_BOOST_HEADERS=1")
+
+    # Setup boost.
+    # Emscripten ships Boost headers (-sUSE_BOOST_HEADERS=1), so there is no need
+    # to build Boost from source here. The components x2t links against are
+    # header-only in this configuration, so expose them as INTERFACE targets.
+    foreach(_boost_comp system filesystem regex date_time)
+        if(NOT TARGET Boost::${_boost_comp})
+            add_library(Boost::${_boost_comp} INTERFACE IMPORTED)
+            target_compile_options(Boost::${_boost_comp} INTERFACE "-sUSE_BOOST_HEADERS=1")
+            target_link_options(Boost::${_boost_comp} INTERFACE "-sUSE_BOOST_HEADERS=1")
+        endif()
+    endforeach()
 
 else()
 
@@ -463,6 +498,11 @@ function(copy_artifacts_to_folder artifacts dest_dir)
 endfunction()
 
 function(copy_icu_libs artifact)
+    if( EMSCRIPTEN )
+        # WASM に共有ライブラリは無い（icu-wasm は静的にリンクされる）。
+        return()
+    endif()
+
     if( MSVC )
 
         file(GLOB ICU_DLLS

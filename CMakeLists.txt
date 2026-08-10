@@ -17,6 +17,9 @@ if(EMSCRIPTEN)
     add_subdirectory( "${CORE_ROOT_DIR}/DesktopEditor/fontengine/js" fonts )
     add_subdirectory( "${CORE_ROOT_DIR}/DesktopEditor/graphics/pro/js/" drawingfile )
 
+    # 実験: x2t を WASM でもビルドできるか確かめる。
+    add_subdirectory( "${CORE_ROOT_DIR}/X2tConverter/build/cmake" x2t )
+
 else()
 
     add_subdirectory( "${CORE_ROOT_DIR}/X2tConverter/build/cmake" x2t )

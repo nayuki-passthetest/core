@@ -68,11 +68,11 @@ if(NOT TARGET kernel)
     add_subdirectory(${CORE_ROOT_DIR}/Common kernel)
 endif()
 
-if(NOT TARGET kernel_network)
+if(NOT EMSCRIPTEN AND NOT TARGET kernel_network)
     add_subdirectory(${CORE_ROOT_DIR}/Common/Network kernel_network)
 endif()
 
-if(NOT TARGET Fb2File)
+if(NOT EMSCRIPTEN AND NOT TARGET Fb2File)
     add_subdirectory(${CORE_ROOT_DIR}/Fb2File Fb2File)
 endif()
 
@@ -80,7 +80,7 @@ if(NOT TARGET PdfFile)
     add_subdirectory(${CORE_ROOT_DIR}/PdfFile PdfFile)
 endif()
 
-if(NOT TARGET HtmlFile2)
+if(NOT EMSCRIPTEN AND NOT TARGET HtmlFile2)
     add_subdirectory(${CORE_ROOT_DIR}/HtmlFile2 HtmlFile2)
 endif()
 
@@ -108,7 +108,7 @@ if(NOT TARGET doctrenderer)
     add_subdirectory(${CORE_ROOT_DIR}/DesktopEditor/doctrenderer doctrenderer)
 endif()
 
-if(NOT TARGET IWorkFile)
+if(NOT EMSCRIPTEN AND NOT TARGET IWorkFile)
     add_subdirectory(${CORE_ROOT_DIR}/Apple IWorkFile)
 endif()
 
@@ -216,17 +216,17 @@ target_link_libraries(x2tlib PUBLIC
     graphics
     kernel
     UnicodeConverter
-    kernel_network
-    Fb2File
+    $<$<NOT:$<BOOL:${EMSCRIPTEN}>>:kernel_network>
+    $<$<NOT:$<BOOL:${EMSCRIPTEN}>>:Fb2File>
     PdfFile
-    HtmlFile2
+    $<$<NOT:$<BOOL:${EMSCRIPTEN}>>:HtmlFile2>
     EpubFile
     XpsFile
     OFDFile
     DjVuFile
     doctrenderer
     DocxRenderer
-    IWorkFile
+    $<$<NOT:$<BOOL:${EMSCRIPTEN}>>:IWorkFile>
     HWPFile
     StarMathConverter
     ooxmlsignature
