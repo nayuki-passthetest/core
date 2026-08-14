@@ -84,7 +84,7 @@ if(NOT EMSCRIPTEN AND NOT TARGET HtmlFile2)
     add_subdirectory(${CORE_ROOT_DIR}/HtmlFile2 HtmlFile2)
 endif()
 
-if(NOT TARGET EpubFile)
+if(NOT EMSCRIPTEN AND NOT TARGET EpubFile)
     add_subdirectory(${CORE_ROOT_DIR}/EpubFile/cmake EpubFile)
 endif()
 
@@ -104,7 +104,7 @@ if(NOT TARGET DocxRenderer)
     add_subdirectory(${CORE_ROOT_DIR}/DocxRenderer DocxRenderer)
 endif()
 
-if(NOT TARGET doctrenderer)
+if(NOT EMSCRIPTEN AND NOT TARGET doctrenderer)
     add_subdirectory(${CORE_ROOT_DIR}/DesktopEditor/doctrenderer doctrenderer)
 endif()
 
@@ -120,7 +120,7 @@ if(NOT TARGET StarMathConverter)
     add_subdirectory(${CORE_ROOT_DIR}/OdfFile/Reader/Converter/StarMath2OOXML StarMathConverter)
 endif()
 
-if(NOT TARGET ooxmlsignature)
+if(NOT EMSCRIPTEN AND NOT TARGET ooxmlsignature)
     add_subdirectory(${CORE_ROOT_DIR}/DesktopEditor/xmlsec/src ooxmlsignature)
 endif()
 
@@ -220,16 +220,16 @@ target_link_libraries(x2tlib PUBLIC
     $<$<NOT:$<BOOL:${EMSCRIPTEN}>>:Fb2File>
     PdfFile
     $<$<NOT:$<BOOL:${EMSCRIPTEN}>>:HtmlFile2>
-    EpubFile
+    $<$<NOT:$<BOOL:${EMSCRIPTEN}>>:EpubFile>
     XpsFile
     OFDFile
     DjVuFile
-    doctrenderer
+    $<$<NOT:$<BOOL:${EMSCRIPTEN}>>:doctrenderer>
     DocxRenderer
     $<$<NOT:$<BOOL:${EMSCRIPTEN}>>:IWorkFile>
     HWPFile
     StarMathConverter
-    ooxmlsignature
+    $<$<NOT:$<BOOL:${EMSCRIPTEN}>>:ooxmlsignature>
 
     Boost::system
     Boost::filesystem

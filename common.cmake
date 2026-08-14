@@ -99,12 +99,21 @@ if( EMSCRIPTEN )
     # WASM ビルドで使う定義（出典: DesktopEditor/graphics/pro/js/raster_make.py）。
     add_compile_definitions(
         __linux__ LINUX _LINUX _REENTRANT
-        CRYPTOPP_DISABLE_ASM _UNICODE UNICODE
+        CRYPTOPP_DISABLE_ASM
+        # UNICODE / _UNICODE は定義しない。定義すると cximage が wchar_t 経路
+        # （_tfopen / wcslen）に入るが、Emscripten では filename は char* のまま
+        # で型が合わない（ximaenc.cpp:120）。
         DONT_WRITE_EMBEDDED_FONTS       # COM 依存の埋め込みフォント処理を外す
         HAVE_UNISTD_H HAVE_FCNTL_H
         BUILDING_WASM_MODULE
         _tcsnicmp=strncmp _lseek=lseek _getcwd=getcwd
     )
+
+    # OpenSSL（openssl-hash）のヘッダ。ooxmlsignature が openssl/bio.h を include する。
+    include_directories("${OPENSSL_WASM_INSTALL_DIR_ABS}/include")
+
+    # 既存の WASM モジュールが使う setjmp 代替（freetype が <wasm_jmp.h> を include する）。
+    include_directories("${CORE_ROOT_DIR}/DesktopEditor/graphics/pro/js/wasm/src/lib")
 
     # ICU（icu-wasm）のヘッダ
     set(ICU_WASM_INSTALL_DIR "${EO_CORE_3RD_PARTY_INSTALL_DIR}/icu-wasm")

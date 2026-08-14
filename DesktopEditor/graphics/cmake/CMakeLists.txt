@@ -14,6 +14,19 @@ set(CSS_ROOT_DIR "${CORE_ROOT_DIR}/Common/3dParty/html/css")
 
 set(FREETYPE_VERSION_TO_USE "2.10.4")
 set(FREETYPE_SOURCES_DIR "${DESKTOP_EDITOR_ROOT_DIR}/freetype-${FREETYPE_VERSION_TO_USE}")
+
+# BUILDING_WASM_MODULE を定義すると freetype は setjmp ではなく C++ の try/catch を
+# 使う経路に入る（ttcmap.c など）。C のままでは通らないので C++ としてコンパイルする。
+# core 自身が既存の WASM モジュールで同じことをしている
+# （DesktopEditor/graphics/pro/js/CMakeLists.txt）。
+# 注意: add_library より前に指定しないと効かない。
+if(EMSCRIPTEN)
+    set_source_files_properties(
+        ${FREETYPE_SOURCES_DIR}/src/smooth/smooth.c
+        ${FREETYPE_SOURCES_DIR}/src/sfnt/sfnt.c
+        PROPERTIES LANGUAGE CXX
+    )
+endif()
 set(FONT_ENGINE_SOURCES_DIR "${DESKTOP_EDITOR_ROOT_DIR}/fontengine")
 
 if(NOT TARGET UnicodeConverter)
@@ -957,6 +970,7 @@ set_default_options(graphics)
 
 if (WIN32)
     target_sources(graphics PRIVATE ${FREETYPE_SOURCES_DIR}/src/base/ftsystem.c) # freetype.pri
+
 else()
     target_sources(graphics PRIVATE ${FREETYPE_SOURCES_DIR}/builds/unix/ftsystem.c) # freetype.pri
 endif()

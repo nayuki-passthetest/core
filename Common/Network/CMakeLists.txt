@@ -10,6 +10,14 @@ if(NOT TARGET kernel)
     add_subdirectory(${CORE_ROOT_DIR}/Common kernel)
 endif()
 
+# WASM ではネットワーク層を持たない。socketio は linux/version.h を要求し、
+# Emscripten には存在しない。参照元（PdfFile / doctrenderer / HtmlFile2 など）が
+# 多いので、個別に外すのではなくここで空ターゲットにして受け止める。
+if(EMSCRIPTEN)
+    add_library(kernel_network INTERFACE)
+    return()
+endif()
+
 set(SOCKETIO_INSTALL_DIR "${EO_CORE_3RD_PARTY_INSTALL_DIR}/socketio")
 get_filename_component(SOCKETIO_INSTALL_DIR_ABS "${SOCKETIO_INSTALL_DIR}" ABSOLUTE)
 

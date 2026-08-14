@@ -23,7 +23,7 @@ if(NOT TARGET kernel)
     add_subdirectory(${CORE_ROOT_DIR}/Common kernel)
 endif()
 
-if(NOT TARGET kernel_network)
+if(NOT EMSCRIPTEN AND NOT TARGET kernel_network)
     add_subdirectory(${CORE_ROOT_DIR}/Common/Network kernel_network)
 endif()
 
@@ -501,7 +501,7 @@ target_link_libraries(PdfFile PUBLIC
     graphics
     kernel
     UnicodeConverter
-    kernel_network
+    $<$<NOT:$<BOOL:${EMSCRIPTEN}>>:kernel_network>
 )
 
 copy_artifacts_to_folder("PdfFile" "${EO_CORE_OUTPUT_DIR}")
