@@ -26,16 +26,13 @@ extern "C" {
 
 // Convert one file to another. The direction is taken from the extensions,
 // the same way x2t's two-argument command line does.
-// tempDir may be NULL/empty, in which case x2t creates one next to the output.
 // Returns 0 on success.
 EMSCRIPTEN_KEEPALIVE
-int x2t_convert(const char* input, const char* output, const char* tempDir)
+int x2t_convert(const char* input, const char* output)
 {
     NExtractTools::InputParams params;
     params.m_sFileFrom = new std::wstring(from_utf8(input));
     params.m_sFileTo   = new std::wstring(from_utf8(output));
-    if (tempDir && *tempDir)
-        params.m_sTempDir = new std::wstring(from_utf8(tempDir));
     return (int)NExtractTools::fromInputParams(params);
 }
 
