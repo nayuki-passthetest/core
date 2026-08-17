@@ -125,6 +125,9 @@ if(NOT EMSCRIPTEN AND NOT TARGET ooxmlsignature)
 endif()
 
 add_library(x2tlib SHARED
+    # Stubs for the modules excluded from the wasm build (see ../wasm/stubs.cpp).
+    $<$<BOOL:${EMSCRIPTEN}>:${CMAKE_CURRENT_LIST_DIR}/../wasm/stubs.cpp>
+
     ${CORE_ROOT_DIR}/Common/OfficeFileFormatChecker2.cpp
     ${CORE_ROOT_DIR}/OOXML/Base/Unit.cpp
     

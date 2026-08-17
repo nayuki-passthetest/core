@@ -19,6 +19,7 @@ if(EMSCRIPTEN)
 
     # 実験: x2t を WASM でもビルドできるか確かめる。
     add_subdirectory( "${CORE_ROOT_DIR}/X2tConverter/build/cmake" x2t )
+    add_subdirectory(X2tConverter/js x2tjs)
 
 else()
 

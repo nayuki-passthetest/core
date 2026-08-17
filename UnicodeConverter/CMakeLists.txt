@@ -17,6 +17,11 @@ target_compile_definitions(UnicodeConverter PRIVATE
     UNICODECONVERTER_USE_DYNAMIC_LIBRARY
 )
 
+if(EMSCRIPTEN)
+    # ICU comes from Emscripten's port; its headers live in the sysroot.
+    target_compile_options(UnicodeConverter PRIVATE "-sUSE_ICU=1")
+endif()
+
 target_include_directories(UnicodeConverter PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${ICU_INSTALL_DIR_ABS}/include

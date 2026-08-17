@@ -51,7 +51,14 @@ get_filename_component(BROTLI_INSTALL_DIR_ABS "${BROTLI_INSTALL_DIR}" ABSOLUTE)
 set(HYPHEN_INSTALL_DIR "${EO_CORE_3RD_PARTY_INSTALL_DIR}/hyphen")
 get_filename_component(HYPHEN_INSTALL_DIR_ABS "${HYPHEN_INSTALL_DIR}" ABSOLUTE)
 
+# freetype's wasm build calls ft_longjmp_ex/ft_setjmp_ex from <wasm_jmp.h>;
+# the implementation lives with core's own wasm modules.
+if(EMSCRIPTEN)
+    set(WASM_JMP_SRC "${CORE_ROOT_DIR}/DesktopEditor/graphics/pro/js/wasm/src/lib/wasm_jmp.cpp")
+endif()
+
 add_library(graphics SHARED
+    ${WASM_JMP_SRC}
     ${METAFILE_SOURCER_DIR}/MetaFile.h
     ${METAFILE_SOURCER_DIR}/Common/MetaFile.h
     ${METAFILE_SOURCER_DIR}/Common/IOutputDevice.h

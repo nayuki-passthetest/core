@@ -115,10 +115,35 @@ if( EMSCRIPTEN )
     # 既存の WASM モジュールが使う setjmp 代替（freetype が <wasm_jmp.h> を include する）。
     include_directories("${CORE_ROOT_DIR}/DesktopEditor/graphics/pro/js/wasm/src/lib")
 
-    # ICU（icu-wasm）のヘッダ
-    set(ICU_WASM_INSTALL_DIR "${EO_CORE_3RD_PARTY_INSTALL_DIR}/icu-wasm")
-    get_filename_component(ICU_WASM_INSTALL_DIR_ABS "${ICU_WASM_INSTALL_DIR}" ABSOLUTE)
-    include_directories("${ICU_WASM_INSTALL_DIR_ABS}/icu/source/common")
+    # ICU. The icu-wasm third-party step only fetches and patches the source --
+    # nothing builds it -- and the non-Emscripten branch below points at .so
+    # files, which do not exist here. Emscripten ships an ICU port, so use that
+    # instead of building ICU ourselves.
+    # ICU headers are needed by UnicodeConverter only, but -sUSE_ICU on the
+    # global compile options also puts Emscripten's sysroot ahead of core's
+    # bundled headers -- and core bundles its own zlib. Two different zlib.h
+    # then disagree, and unzip silently stops working (doct -> docx hangs with
+    # no output). Keep the port for linking; add the include only where needed.
+    # -sUSE_ICU on the *compile* options also pulls Emscripten's sysroot ahead
+    # of core's bundled headers, and core bundles its own zlib. Two different
+    # zlib.h then disagree and unzip stops working (doct -> docx hangs with no
+    # output at all). UnicodeConverter adds the ICU include itself, so the port
+    # is only needed at link time here.
+    # Emscripten disables C++ exceptions by default. x2t reports conversion
+    # failures by throwing, so without this a throw stops the module dead --
+    # doct -> docx hangs with no output at all, while docx -> doct (which does
+    # not throw) still works.
+    add_compile_options("-fexceptions")
+    add_link_options("-fexceptions")
+
+    # Build with -O1. At -O0 a doct -> docx conversion does not finish in eight
+    # minutes; the same conversion with the same input takes seconds at -O1.
+    # x2t leans on a lot of small calls that only get inlined once optimisation
+    # is on, and nothing inlines them in a wasm build otherwise.
+    add_compile_options("-O1")
+    add_link_options("-O1")
+
+    add_link_options("-sUSE_ICU=1")
 
     # Emscripten 同梱の Boost ヘッダを全体で使えるようにする。
     # Boost:: を直接リンクしないライブラリも boost/format.hpp 等を include する。
@@ -370,9 +395,14 @@ else()
         -O2 #Remove for debugging
     )
 
-    set(COMMON_LINK_OPTIONS
-        "-Wl,--disable-new-dtags"
-    )
+    # --disable-new-dtags は RPATH 用の ELF 専用オプション。wasm-ld は受け付けない。
+    if(EMSCRIPTEN)
+        set(COMMON_LINK_OPTIONS "")
+    else()
+        set(COMMON_LINK_OPTIONS
+            "-Wl,--disable-new-dtags"
+        )
+    endif()
 
 endif()
 
