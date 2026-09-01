@@ -1,4 +1,12 @@
 build/
+
+# The wasm target's stubs are a source file that happens to live under a
+# build/ directory, so the rule above swallows them. X2tConverter/js's
+# CMakeLists requires this file: without it the Emscripten build cannot be
+# configured at all.
+!X2tConverter/build/
+!X2tConverter/build/cmake/
+!X2tConverter/build/cmake/wasm/
 **/core_build
 **/Release
 **/Debug
